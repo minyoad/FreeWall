@@ -50,6 +50,14 @@ Automatically install Docker and deploy the FreeGFW container. It will show the 
 curl -fsSL https://raw.githubusercontent.com/haradakashiwa/freegfw/main/install.sh | bash
 ```
 
+### System Service Installation (Systemd)
+
+Install directly on the host machine as a Systemd service (without Docker).
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/haradakashiwa/freegfw/main/install-systemd.sh | bash
+```
+
 ### Docker Deployment
 
 ```bash

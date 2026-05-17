@@ -50,6 +50,14 @@ FreeGFW 的目标是提供一个简单易用、功能强大的代理服务管理
 curl -fsSL https://raw.githubusercontent.com/haradakashiwa/freegfw/main/install.sh | bash
 ```
 
+### 系统服务安装 (Systemd)
+
+直接在宿主机上安装为 Systemd 服务（不依赖 Docker）。
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/haradakashiwa/freegfw/main/install-systemd.sh | bash
+```
+
 ### Docker 部署
 
 ```bash
