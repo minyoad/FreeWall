@@ -23,7 +23,9 @@ func InitSSEHub() {
 		clients:    make(map[chan string]bool),
 		register:   make(chan chan string),
 		unregister: make(chan chan string),
-		broadcast:  make(chan []byte),
+		// Buffer size of 64: the monitoring goroutine sends 3 messages per second (speed/traffic/connections).
+		// The buffer is sufficient to absorb transient pressure, preventing Broadcast() from blocking the ticker goroutine.
+		broadcast: make(chan []byte, 64),
 	}
 	go Hub.run()
 	go func() {
@@ -65,10 +67,18 @@ func (h *SSEHub) run() {
 	}
 }
 
+// Broadcast sends an SSE event to all connected clients.
+// It is non-blocking: if the internal channel is full (e.g., no clients
+// connected and the hub's run() loop is busy), the message is silently
+// dropped rather than blocking the caller's goroutine.
 func (h *SSEHub) Broadcast(event string, data interface{}) {
 	payload, _ := json.Marshal(data)
 	msg := fmt.Sprintf("event: %s\ndata: %s\n\n", event, payload)
-	h.broadcast <- []byte(msg)
+	select {
+	case h.broadcast <- []byte(msg):
+	default:
+		// Channel full — drop this frame; the next tick will send a fresh one.
+	}
 }
 
 func ServeSSE(w http.ResponseWriter, r *http.Request) {

@@ -312,7 +312,9 @@ func (c *CoreService) Start() error {
 		c.xrayInstance = instance
 		c.TrafficManager = nil // Xray internal traffic tracking used via StatisticsTracker/XrayUserTraffic
 
-		go monitorXrayLoop(instance)
+		// NOTE: monitorXrayLoop is started centrally by StartMonitoring() → monitorDirectly().
+		// Do NOT call go monitorXrayLoop(instance) here — it would create a duplicate monitor
+		// goroutine competing with the one in monitor.go, causing double traffic counts.
 
 		return nil
 	}

@@ -95,6 +95,7 @@ func (d *XrayDispatcher) Dispatch(ctx context.Context, dest net.Destination) (*t
 		newLink.Reader = &RateLimitedReader{
 			Reader:  link.Reader,
 			limiter: limiter,
+			ctx:     ctx,
 		}
 	}
 
@@ -102,6 +103,7 @@ func (d *XrayDispatcher) Dispatch(ctx context.Context, dest net.Destination) (*t
 		newLink.Writer = &RateLimitedWriter{
 			Writer:  link.Writer,
 			limiter: limiter,
+			ctx:     ctx,
 		}
 	}
 
@@ -129,17 +131,18 @@ func (d *XrayDispatcher) DispatchLink(ctx context.Context, dest net.Destination,
 
 		log.Printf("[XrayDispatcher] Wrapping connection in DispatchLink for user: %s", email)
 
-		// Wrap things in place
 		if link.Reader != nil {
 			link.Reader = &RateLimitedReader{
 				Reader:  link.Reader,
 				limiter: limiter,
+				ctx:     ctx,
 			}
 		}
 		if link.Writer != nil {
 			link.Writer = &RateLimitedWriter{
 				Writer:  link.Writer,
 				limiter: limiter,
+				ctx:     ctx,
 			}
 		}
 	}
@@ -165,23 +168,28 @@ func (d *XrayDispatcher) Close() error {
 type RateLimitedWriter struct {
 	buf.Writer
 	limiter *rate.Limiter
+	// ctx is the connection-level context (from Dispatch/DispatchLink).
+	// When the connection is torn down, ctx is cancelled, which unblocks
+	// any goroutine waiting in WaitN and prevents goroutine leaks.
+	ctx context.Context
 }
 
 func (w *RateLimitedWriter) WriteMultiBuffer(mb buf.MultiBuffer) error {
-	len := int64(mb.Len())
-	if len > 0 {
-		if w.limiter != nil {
-			// Split wait if len > burst to avoid error
-			burst := w.limiter.Burst()
-			remaining := int(len)
-			for remaining > 0 {
-				waitN := remaining
-				if waitN > burst {
-					waitN = burst
-				}
-				w.limiter.WaitN(context.Background(), waitN)
-				remaining -= waitN
+	l := int64(mb.Len())
+	if l > 0 && w.limiter != nil {
+		// Split wait into burst-sized chunks to avoid WaitN(n > burst) errors.
+		burst := w.limiter.Burst()
+		remaining := int(l)
+		for remaining > 0 {
+			waitN := remaining
+			if waitN > burst {
+				waitN = burst
 			}
+			if err := w.limiter.WaitN(w.ctx, waitN); err != nil {
+				// Context cancelled (connection closed) — stop throttling.
+				break
+			}
+			remaining -= waitN
 		}
 	}
 	return w.Writer.WriteMultiBuffer(mb)
@@ -190,24 +198,25 @@ func (w *RateLimitedWriter) WriteMultiBuffer(mb buf.MultiBuffer) error {
 type RateLimitedReader struct {
 	buf.Reader
 	limiter *rate.Limiter
+	// ctx mirrors the purpose of RateLimitedWriter.ctx.
+	ctx context.Context
 }
 
 func (r *RateLimitedReader) ReadMultiBuffer() (buf.MultiBuffer, error) {
 	mb, err := r.Reader.ReadMultiBuffer()
-	if !mb.IsEmpty() {
-		len := int64(mb.Len())
-		if r.limiter != nil {
-			// Split wait if len > burst to avoid error
-			burst := r.limiter.Burst()
-			remaining := int(len)
-			for remaining > 0 {
-				waitN := remaining
-				if waitN > burst {
-					waitN = burst
-				}
-				r.limiter.WaitN(context.Background(), waitN)
-				remaining -= waitN
+	if !mb.IsEmpty() && r.limiter != nil {
+		burst := r.limiter.Burst()
+		remaining := int(int64(mb.Len()))
+		for remaining > 0 {
+			waitN := remaining
+			if waitN > burst {
+				waitN = burst
 			}
+			if werr := r.limiter.WaitN(r.ctx, waitN); werr != nil {
+				// Context cancelled — return data already read.
+				break
+			}
+			remaining -= waitN
 		}
 	}
 	return mb, err
