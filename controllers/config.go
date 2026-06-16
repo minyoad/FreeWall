@@ -7,6 +7,7 @@ import (
 	"freegfw/services"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -44,6 +45,19 @@ func GetConfigs(c *gin.Context) {
 	if _, err := os.Stat("data/certificate.crt"); err == nil {
 		if _, err := os.Stat("data/private.key"); err == nil {
 			ssl = true
+		}
+	}
+
+	// Treat requests forwarded as HTTPS by a reverse proxy as SSL-enabled.
+	if !ssl {
+		proto := c.GetHeader("X-Forwarded-Proto")
+		if strings.EqualFold(proto, "https") {
+			ssl = true
+		} else {
+			forwarded := c.GetHeader("Forwarded")
+			if strings.Contains(strings.ToLower(forwarded), "proto=https") {
+				ssl = true
+			}
 		}
 	}
 
