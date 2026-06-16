@@ -1,0 +1,33 @@
+name: FreeGFW
+tags:
+  - 工具
+title: 高性能代理服务管理系统
+description: 基于 Sing-box 和 Xray 核心构建的高性能代理服务管理系统
+additionalProperties:
+    key: freegfw
+    name: FreeGFW
+    tags:
+        - Tool
+    shortDescZh: 基于 Sing-box 和 Xray 的代理服务管理系统
+    shortDescEn: High-performance proxy service management system
+    description:
+        en: FreeGFW is a high-performance proxy service management system built on Sing-box and Xray core, providing a modern web interface for easily deploying, managing, and monitoring various proxy protocol services.
+        es-es: FreeGFW es un sistema de gestión de servicios proxy de alto rendimiento construido sobre Sing-box y Xray, que proporciona una interfaz web moderna para implementar, gestionar y monitorear varios servicios de protocolo proxy.
+        ja: FreeGFW は Sing-box と Xray コア上に構築された高性能プロキシサービス管理システムで、様々なプロキシプロトコルを簡単にデプロイ、管理、監視するためのモダンなWebインターフェースを提供します。
+        ms: FreeGFW adalah sistem pengurusan perkhidmatan proksi berprestasi tinggi yang dibina di atas teras Sing-box dan Xray, menyediakan antara muka web moden untuk menggunakan, mengurus, dan memantau pelbagai perkhidmatan protokol proksi.
+        pt-br: FreeGFW é um sistema de gerenciamento de serviços de proxy de alto desempenho construído sobre os núcleos Sing-box e Xray, fornecendo uma interface web moderna para implantar, gerenciar e monitorar vários serviços de protocolo de proxy.
+        ru: FreeGFW - это высокопроизводительная система управления прокси-сервисами, построенная на ядрах Sing-box и Xray, предоставляющая современный веб-интерфейс для развертывания, управления и мониторинга различных прокси-протоколов.
+        ko: FreeGFW는 Sing-box 및 Xray 코어 기반의 고성능 프록시 서비스 관리 시스템으로, 다양한 프록시 프로토콜 서비스를 쉽게 배포, 관리 및 모니터링할 수 있는 현대적인 웹 인터페이스를 제공합니다.
+        zh-Hant: FreeGFW 是一個基於 Sing-box 和 Xray 核心構建的高性能代理服務管理系統，提供現代化的 Web 介面，用於輕鬆部署、管理和監控各類代理協議服務。
+        zh: FreeGFW 是一个基于 Sing-box 和 Xray 核心构建的高性能代理服务管理系统，提供现代化的 Web 界面，用于轻松部署、管理和监控各类代理协议服务。
+        tr: FreeGFW, Sing-box ve Xray çekirdekleri üzerine inşa edilmiş yüksek performanslı bir proxy hizmet yönetim sistemidir ve çeşitli proxy protokol hizmetlerini kolayca dağıtmak, yönetmek ve izlemek için modern bir web arayüzü sağlar.
+    type: tool
+    crossVersionUpdate: false
+    limit: 0
+    batchInstallSupport: false
+    website: https://github.com/haradakashiwa/freegfw
+    github: https://github.com/haradakashiwa/freegfw
+    document: https://github.com/haradakashiwa/freegfw
+    architectures:
+      - amd64
+      - arm64

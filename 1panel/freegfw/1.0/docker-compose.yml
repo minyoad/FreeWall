@@ -1,0 +1,12 @@
+services:
+  freegfw:
+    container_name: ${CONTAINER_NAME}
+    image: ghcr.io/haradakashiwa/freegfw
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+      - ./data:/data
+    environment:
+      - PORT=${PANEL_APP_PORT_HTTP:-8080}
+    labels:
+      createdBy: "Apps"
