@@ -4,6 +4,9 @@ services:
     image: ghcr.io/haradakashiwa/freegfw
     network_mode: host
     restart: unless-stopped
+    environment:
+      - PORT=8080
+      - DISABLE_LOCAL_HTTPS=1
     volumes:
       - ./data:/data
     environment:

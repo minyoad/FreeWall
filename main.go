@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"strings"
 	"time"
 )
 
@@ -61,10 +62,17 @@ func main() {
 
 		certFile := "data/certificate.crt"
 		keyFile := "data/private.key"
+
+		// Allow disabling local HTTPS when running behind a reverse proxy
+		// (e.g. 1Panel) by setting DISABLE_LOCAL_HTTPS=1 or true in environment.
+		disableLocalHTTPS := os.Getenv("DISABLE_LOCAL_HTTPS")
+
 		hasCert := false
-		if _, err := os.Stat(certFile); err == nil {
-			if _, err := os.Stat(keyFile); err == nil {
-				hasCert = true
+		if strings.ToLower(disableLocalHTTPS) != "true" && disableLocalHTTPS != "1" {
+			if _, err := os.Stat(certFile); err == nil {
+				if _, err := os.Stat(keyFile); err == nil {
+					hasCert = true
+				}
 			}
 		}
 
