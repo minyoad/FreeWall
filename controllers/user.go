@@ -258,12 +258,6 @@ h1 { font-size: 1.5rem; margin-bottom: 2rem; color: #1a1a1a; font-weight: 700; }
 			port = fmt.Sprintf("%d", int(f))
 		}
 
-		if isClash {
-			if p := utils.ToClashProxy(server, ip, port, uuid, titleAlias); p != nil {
-				clashProxies = append(clashProxies, p)
-			}
-		}
-
 		tlsConfig, _ := server["tls"].(map[string]interface{})
 		isTLS := false
 		serverName := ""
@@ -274,10 +268,6 @@ h1 { font-size: 1.5rem; margin-bottom: 2rem; color: #1a1a1a; font-weight: 700; }
 		if tlsConfig != nil && tlsConfig["enabled"] == true {
 			isTLS = true
 			serverName, _ = tlsConfig["server_name"].(string)
-			if serverName == "" {
-				serverName = ip
-			}
-
 			if reality, ok := tlsConfig["reality"].(map[string]interface{}); ok {
 				if rEnabled, ok := reality["enabled"].(bool); ok && rEnabled {
 					isReality = true
@@ -301,10 +291,21 @@ h1 { font-size: 1.5rem; margin-bottom: 2rem; color: #1a1a1a; font-weight: 700; }
 			}
 		}
 
+		address := ip
+		if isTLS && serverName != "" {
+			address = serverName
+		}
+
 		// Handle IPv6 formatting for URI authority
-		hostname := ip
-		if strings.Contains(ip, ":") && !strings.HasPrefix(ip, "[") {
-			hostname = "[" + ip + "]"
+		hostname := address
+		if strings.Contains(address, ":") && !strings.HasPrefix(address, "[") {
+			hostname = "[" + address + "]"
+		}
+
+		if isClash {
+			if p := utils.ToClashProxy(server, address, port, uuid, titleAlias); p != nil {
+				clashProxies = append(clashProxies, p)
+			}
 		}
 
 		transport, _ := server["transport"].(map[string]interface{})
@@ -334,7 +335,7 @@ h1 { font-size: 1.5rem; margin-bottom: 2rem; color: #1a1a1a; font-weight: 700; }
 			v := map[string]interface{}{
 				"v":    "2",
 				"ps":   titleAlias,
-				"add":  ip,
+				"add":  address,
 				"port": port,
 				"id":   uuid,
 				"aid":  "0",

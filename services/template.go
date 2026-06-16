@@ -364,15 +364,20 @@ func BuildServerTLS(templateName string) (map[string]interface{}, error) {
 
 		var s models.Setting
 		database.DB.Where("key = ?", "letsencrypt_domain").Limit(1).Find(&s)
-		var ip string
-		json.Unmarshal(s.Value, &ip)
-		if ip == "" {
+		var serverName string
+		json.Unmarshal(s.Value, &serverName)
+		if serverName == "" {
+			if tName, ok := tlsConfig["server_name"].(string); ok && tName != "" {
+				serverName = tName
+			}
+		}
+		if serverName == "" {
 			var i models.Setting
 			database.DB.Where("key = ?", "ip").First(&i)
-			json.Unmarshal(i.Value, &ip)
+			json.Unmarshal(i.Value, &serverName)
 		}
-		if ip == "" {
-			ip, _ = GetIPv4()
+		if serverName == "" {
+			serverName, _ = GetIPv4()
 		}
 
 		certContent, _ := os.ReadFile(certPath)
@@ -384,7 +389,7 @@ func BuildServerTLS(templateName string) (map[string]interface{}, error) {
 
 		return map[string]interface{}{
 			"enabled":     true,
-			"server_name": ip,
+			"server_name": serverName,
 			"certificate": strings.Split(string(certContent), "\n"),
 			"key":         strings.Split(string(keyContent), "\n"),
 		}, nil
