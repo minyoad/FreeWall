@@ -39,9 +39,12 @@ func GetConfigs(c *gin.Context) {
 	database.DB.Where("key = ?", "password").Limit(1).Find(&passSettings)
 	hasPassword := len(passSettings.Value) > 0
 
-	var sslSettings models.Setting
-	database.DB.Where("key = ?", "letsencrypt_domain").Limit(1).Find(&sslSettings)
-	ssl := len(sslSettings.Value) > 0
+	ssl := false
+	if _, err := os.Stat("data/certificate.crt"); err == nil {
+		if _, err := os.Stat("data/private.key"); err == nil {
+			ssl = true
+		}
+	}
 
 	core := services.NewCoreService()
 

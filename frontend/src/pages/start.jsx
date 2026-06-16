@@ -10,16 +10,9 @@ import { Button } from '@/components/ui/button'
 import { useLanguageStore } from '../store/useLanguageStore'
 
 export default function Start() {
-    const { step, setStep } = useStartStore()
+    const { step } = useStartStore()
     const { data: config } = useGetConfigs()
     const { t } = useLanguageStore()
-    useEffect(() => {
-        if (!config?.ssl) {
-            setStep('letsencrypt')
-            return
-        }
-        setStep('select-user-type')
-    }, [])
     const steps = {
         'letsencrypt': <LetsEncrypt />,
         'select-user-type': <SelectUserType />,

@@ -16,7 +16,7 @@ export default function Index() {
         <div className='grid grid-cols-1 gap-4'>
             {loaded && !config?.ssl && (
                 <Alert
-                    type='danger'
+                    type='warning'
                     title={t('ssl_not_configured')}
                     description={t('ssl_warning_index')}
                 >
