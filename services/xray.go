@@ -114,7 +114,6 @@ func (c *CoreService) refreshXray(server map[string]interface{}, templateName st
 		streamSettings["security"] = "reality"
 		rSettings := map[string]interface{}{
 			"show":        false,
-			"dest":        "www.microsoft.com:443", // Default
 			"xver":        0,
 			"serverNames": []string{"www.microsoft.com"}, // Default
 		}
@@ -135,17 +134,26 @@ func (c *CoreService) refreshXray(server map[string]interface{}, templateName st
 			rSettings["serverNames"] = []string{sni}
 		}
 
-		if handshake, ok := reality["handshake"].(map[string]interface{}); ok {
-			server := "www.microsoft.com"
-			port := "443"
-			if s, ok := handshake["server"].(string); ok {
-				server = s
-			}
-			if p, ok := handshake["server_port"].(float64); ok {
-				port = fmt.Sprintf("%d", int(p))
-			}
-			rSettings["dest"] = server + ":" + port
+		var s models.Setting
+		database.DB.Where("key = ?", "letsencrypt_domain").Limit(1).Find(&s)
+		var serverName string
+		json.Unmarshal(s.Value, &serverName)
+		if serverName == "" {
+			var i models.Setting
+			database.DB.Where("key = ?", "ip").First(&i)
+			json.Unmarshal(i.Value, &serverName)
 		}
+		if serverName != "" {
+			rSettings["serverNames"] = []string{serverName}
+			if handshake, ok := reality["handshake"].(map[string]interface{}); ok {
+				if _, ok := handshake["server"]; !ok {
+					handshake["server"] = serverName
+				}
+			} else {
+				reality["handshake"] = map[string]interface{}{"server": serverName}
+			}
+		}
+
 		streamSettings["realitySettings"] = rSettings
 
 	} else if isTLS {
