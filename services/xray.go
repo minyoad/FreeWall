@@ -2,8 +2,8 @@ package services
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
+	"fmt"
 
 	"freegfw/database"
 	"freegfw/models"
@@ -115,7 +115,8 @@ func (c *CoreService) refreshXray(server map[string]interface{}, templateName st
 		rSettings := map[string]interface{}{
 			"show":        false,
 			"xver":        0,
-			"serverNames": []string{"www.microsoft.com"}, // Default
+			"serverNames": []string{"www.microsoft.com"}, // Default - Xray需要复数形式
+			"dest":        "www.microsoft.com:443", // Default dest
 		}
 
 		if pk, ok := reality["private_key"].(string); ok {
@@ -134,6 +135,19 @@ func (c *CoreService) refreshXray(server map[string]interface{}, templateName st
 			rSettings["serverNames"] = []string{sni}
 		}
 
+		// 从handshake配置中获取dest信息
+		if handshake, ok := reality["handshake"].(map[string]interface{}); ok {
+			server := "www.microsoft.com"
+			port := "443"
+			if s, ok := handshake["server"].(string); ok {
+				server = s
+			}
+			if p, ok := handshake["server_port"].(float64); ok {
+				port = fmt.Sprintf("%d", int(p))
+			}
+			rSettings["dest"] = server + ":" + port
+		}
+
 		var s models.Setting
 		database.DB.Where("key = ?", "letsencrypt_domain").Limit(1).Find(&s)
 		var serverName string
@@ -148,9 +162,12 @@ func (c *CoreService) refreshXray(server map[string]interface{}, templateName st
 			if handshake, ok := reality["handshake"].(map[string]interface{}); ok {
 				if _, ok := handshake["server"]; !ok {
 					handshake["server"] = serverName
+					// 更新dest
+					rSettings["dest"] = serverName + ":443"
 				}
 			} else {
 				reality["handshake"] = map[string]interface{}{"server": serverName}
+				rSettings["dest"] = serverName + ":443"
 			}
 		}
 

@@ -17,18 +17,20 @@ export function SettingsCard() {
 
 	const [username, setUsername] = useState('')
 	const [password, setPassword] = useState('')
+	const [proxyDomain, setProxyDomain] = useState('')
 	const [warpEnabled, setWarpEnabled] = useState(false)
 
 	useEffect(() => {
 		if (config) {
 			setUsername(config.username || '')
 			setPassword(config.password || '')
+			setProxyDomain(config.proxy_domain || '')
 			setWarpEnabled(!!config.warp_enabled)
 		}
 	}, [config])
 
 	const handleSave = async () => {
-		await updateConfigs({ username, password, warp_enabled: warpEnabled })
+		await updateConfigs({ username, password, proxy_domain: proxyDomain, warp_enabled: warpEnabled })
 		await reloadConfigs()
 		await refresh()
 	}
@@ -60,6 +62,14 @@ export function SettingsCard() {
 							value={password}
 							onChange={e => setPassword(e.target.value)}
 							placeholder={t('admin_password_placeholder')}
+						/>
+					</div>
+					<div>
+						<label className="block text-sm font-medium mb-1">{t('proxy_domain') || '反向代理域名'}</label>
+						<Input
+							value={proxyDomain}
+							onChange={e => setProxyDomain(e.target.value)}
+							placeholder={t('proxy_domain_placeholder') || '例如：your-proxy-domain.com'}
 						/>
 					</div>
 					<div className="flex items-center gap-2 mt-2">

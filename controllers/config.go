@@ -37,6 +37,14 @@ func GetConfigs(c *gin.Context) {
 		json.Unmarshal(ipv6Settings.Value, &ipv6)
 	}
 
+	// 读取反向代理域名配置
+	var proxyDomainSettings models.Setting
+	database.DB.Where("key = ?", "proxy_domain").Limit(1).Find(&proxyDomainSettings)
+	var proxyDomain string
+	if len(proxyDomainSettings.Value) > 0 {
+		json.Unmarshal(proxyDomainSettings.Value, &proxyDomain)
+	}
+
 	var passSettings models.Setting
 	database.DB.Where("key = ?", "password").Limit(1).Find(&passSettings)
 	hasPassword := len(passSettings.Value) > 0
@@ -83,6 +91,7 @@ func GetConfigs(c *gin.Context) {
 		"running":      core.IsRunning(),
 		"ip":           ip,
 		"ipv6":         ipv6,
+		"proxy_domain": proxyDomain,
 		"has_password": hasPassword,
 		"ssl":          ssl,
 		"warp_enabled": warpEnabled,
@@ -96,7 +105,7 @@ func UpdateConfig(c *gin.Context) {
 		return
 	}
 
-	allowed := []string{"username", "password", "title", "warp_enabled"}
+	allowed := []string{"username", "password", "title", "warp_enabled", "proxy_domain"}
 	for _, key := range allowed {
 		if val, ok := payload[key]; ok {
 			jsonVal, _ := json.Marshal(val) // Handle null/empty logic

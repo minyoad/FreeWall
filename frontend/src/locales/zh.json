@@ -89,5 +89,7 @@
   "encrypt_my_connection": "加密我的连接",
   "confirm_skip": "确认跳过",
   "config_failed_check_logs": "配置失败，请检查域名解析是否正确，或查看服务器日志。",
-  "enable_cloudflare_warp": "启用 Cloudflare WARP 出站隧道"
+  "enable_cloudflare_warp": "启用 Cloudflare WARP 出站隧道",
+  "proxy_domain": "反向代理域名",
+  "proxy_domain_placeholder": "例如：your-proxy-domain.com"
 }

@@ -225,6 +225,14 @@ h1 { font-size: 1.5rem; margin-bottom: 2rem; color: #1a1a1a; font-weight: 700; }
 	var localIP string
 	json.Unmarshal(ipS.Value, &localIP)
 
+	// 读取反向代理后的域名配置
+	var proxyDomainS models.Setting
+	database.DB.Where("key = ?", "proxy_domain").Limit(1).Find(&proxyDomainS)
+	var proxyDomain string
+	if len(proxyDomainS.Value) > 0 {
+		json.Unmarshal(proxyDomainS.Value, &proxyDomain)
+	}
+
 	var tS models.Setting
 	database.DB.Where("key = ?", "title").Limit(1).Find(&tS)
 	title := "FreeGFW"
@@ -294,6 +302,10 @@ h1 { font-size: 1.5rem; margin-bottom: 2rem; color: #1a1a1a; font-weight: 700; }
 		address := ip
 		if isTLS && serverName != "" {
 			address = serverName
+		}
+		// 如果配置了反向代理域名，优先使用它作为节点地址
+		if proxyDomain != "" {
+			address = proxyDomain
 		}
 
 		// Handle IPv6 formatting for URI authority
